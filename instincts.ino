@@ -4,7 +4,7 @@
 //      Written By Zane Durkin
 //      For Use on Arduino Due board.
 //      created 10/25/2014
-//      last edited 11/16/2014
+//      last edited 9/5/2016
 //      
 //*******************************************************************
 
@@ -463,4 +463,3 @@ void diagBL (int distance, int spd){
   analogWrite(RBS, 0);
   analogWrite(LFS, 0);
   analogWrite(LBS, 0);
-}
