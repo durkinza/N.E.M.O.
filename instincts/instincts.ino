@@ -15,7 +15,7 @@
 
 
 // Direction is 0 or 1 (low or high)
-// D = digital  C = current sensing  L = left   R = right  PWD = pulse width modulation(speed) E = Encoder
+// D = direction  C = current sensing  L = left   R = right  PWM = pulse width modulation(speed) E = Encoder
 
 // Right front will use 24, 26,54,62     26 is pwm    
 const int RFD     = 23;   //direction
@@ -49,8 +49,12 @@ const int LBE     = 28;    //Encoder reader
 // pins: direction, speed, stall, Encoder
 //int LB[] = {26, 5, 57, 28};
 
-int done = 0;            // a variable for the encoders
-const int spin    = 3400;  //how long motors should run to spin the robot 90 degrees (like a top)
+int done                = 0;     // a variable for the encoders
+const int spin          = 5000;  // how long motors should run to spin the robot 90 degrees (like a top)
+//const int encoder_count = 2600;  // how many counts the montor should spin to go one foot (2600 is close to 1 foot)
+const int encoder_count = 9500;  // how many counts the montor should spin to go one meter (9500 is close to 1 meter)
+const int slide_count = 10000;   // how many counts the montor should spin to go one meter while sliding (1000 is close to 1 meter)
+
 
 
 void setup() {
@@ -77,19 +81,19 @@ void loop() {
   analogWrite(LFS, 0);
   analogWrite(LBS, 0);
   delay(5000);
-  //go forward 4 feet at full speed 
-  forward(4, 255);
-  //wait 1 second
-  delay (1000);
-  //spin clock wise 180 degrees at full speed 
-  spinCW (2, 255);
-  //wait 1 second
-  delay (1000);
-  forward(4,255);
+  //forward(1, 255);
+  //delay(3000);
+  //reverse(1, 255);
+  //delay(5000);
+  spinCCW(1, 255);
   delay(1000);
-  //spin counter-clock wise at full speed 
-  spinCCW(2, 255);
-  delay (3000);
+  //right(1, 255);
+  //delay(5000);
+  //left(1, 255);
+  delay(3000);
+  spinCW(1, 255);
+  
+
   
   // write NEMO
 //  forward(4,255);
@@ -176,8 +180,8 @@ void loop() {
 //void add (){done++;}
 
 
-//set count equal to 6400 if no variable is given
-void walk (int count=6400){
+//set count equal to default if no variable is given
+void walk (int count=encoder_count){
   int done = 0;
   while(done < count){
     //check for a PWM pulse; when on, start timer; when off, return how long the pulse was high; is pulse was on high longer than 10 microsecounds, continue
@@ -208,7 +212,7 @@ void checkFront(){
   analogWrite(LFS, 127);
   analogWrite(LBS, 127);
   //walk back for half a foot
-  delay(500);
+  walk((int)encoder_count/2);
   //stop wheels
   analogWrite(RFS, 0);
   analogWrite(RBS, 0);
@@ -300,7 +304,7 @@ void left (int distance, int spd){
     analogWrite(LFS, spd);
     analogWrite(LBS, spd);
     //delay()should be changed to read encoder output
-    delay(spin);
+    walk(slide_count);
     //subtract a foot from the distance
     distance --;
   }
@@ -325,7 +329,7 @@ void right(int distance, int spd){
     analogWrite(LFS, spd);
     analogWrite(LBS, spd);
     //delay()should be changed to read encoder output
-    delay(spin);
+    walk(slide_count);
     //subtract a foot from the distance
     distance --;
   }
@@ -349,7 +353,7 @@ void spinCW (int distance, int spd){
     analogWrite(RBS, spd);
     analogWrite(LFS, spd);
     analogWrite(LBS, spd);
-    walk();
+    walk(spin);
     //subtract a foot from the distance
     distance --;
   }
@@ -373,7 +377,7 @@ void spinCCW(int distance, int spd){
     analogWrite(RBS, spd);
     analogWrite(LFS, spd);
     analogWrite(LBS, spd);
-    walk();
+    walk(spin);
     //subtract a foot from the distance
     distance --;
   }
