@@ -21,6 +21,7 @@
 const int RFD     = 23;   //direction
 const int RFS     = 2;    //speed pwm2
 const int RFC     = 54;   //engine stall reciver A0
+//const int RFC     = 30;
 const int RFE     = 25;   //Encoder reader 
 // pins: direction, speed, stall, Encoder
 //int RF[]= {23, 2, 54, 25};
@@ -29,6 +30,7 @@ const int RFE     = 25;   //Encoder reader
 const int RBD     = 27;    //direction
 const int RBS     = 3;     //speed pwm3
 const int RBC     = 56;    //engine stall reciever A2
+//const int RBC     = 32;
 const int RBE     = 29;    //Encoder reader 
 // pins: direction, speed, stall, Encoder
 //int RB[] = {27, 3, 56, 29};
@@ -37,6 +39,7 @@ const int RBE     = 29;    //Encoder reader
 const int LFD     = 22;    //direction
 const int LFS     = 4;     //speed pwm4
 const int LFC     = 55;    //engine stall reciever A1
+//const int LFC     = 31;
 const int LFE     = 24;    //Encoder reader 
 // pins: direction, speed, stall, Encoder
 //int LF[] = {22, 4, 55, 24};
@@ -45,6 +48,7 @@ const int LFE     = 24;    //Encoder reader
 const int LBD     = 26;    //direction
 const int LBS     = 5;     //speed pwm5
 const int LBC     = 57;    //engine stall reciever A3
+//const int LBC     = 33;
 const int LBE     = 28;    //Encoder reader 
 // pins: direction, speed, stall, Encoder
 //int LB[] = {26, 5, 57, 28};
@@ -62,12 +66,10 @@ void setup() {
   pinMode (RBD, OUTPUT);
   pinMode (LFD, OUTPUT);
   pinMode (LBD, OUTPUT);
-  
-//  attachInterrupt(RFC, checkFront, HIGH);
-//  attachInterrupt(RBC, checkBack, HIGH);
-//  attachInterrupt(LFC, checkFront, HIGH);
-//  attachInterrupt(LBC, checkBack, HIGH);
-  
+  pinMode (RFC, INPUT);
+  pinMode (RBC, INPUT);
+  pinMode (LFC, INPUT);
+  pinMode (LBC, INPUT);
   pinMode (RFE, INPUT);
   pinMode (RBE, INPUT);
   pinMode (LFE, INPUT);
@@ -81,17 +83,18 @@ void loop() {
   analogWrite(LFS, 0);
   analogWrite(LBS, 0);
   delay(5000);
+  diagBR(1, 255);
   //forward(1, 255);
   //delay(3000);
   //reverse(1, 255);
   //delay(5000);
-  spinCCW(1, 255);
-  delay(1000);
+  //spinCCW(1, 255);
+  //delay(1000);
   //right(1, 255);
   //delay(5000);
   //left(1, 255);
-  delay(3000);
-  spinCW(1, 255);
+  //delay(3000);
+  //spinCW(1, 255);
   
 
   
@@ -188,10 +191,20 @@ void walk (int count=encoder_count){
     if (pulseIn(RFE, HIGH)>10){
       done ++;
     }
+    //check to see if wheel is stuck
+    if ((analogRead(RFC) > 800 ) || (analogRead(LFC) > 800)){
+      checkFront();
+      break;
+    }
+    // check to see if wheel is stuck
+    if ((analogRead(RBC) > 800 ) || (analogRead(LBC) > 800)){
+      checkBack();
+      break;
+    }
   }
 }
 
-void walkLF (int count=6400){
+void walkLF (int count=encoder_count){
   int done = 0;
   while(done < count){
     if (pulseIn(LFE, HIGH)>10){
@@ -211,8 +224,18 @@ void checkFront(){
   analogWrite(RBS, 127);
   analogWrite(LFS, 127);
   analogWrite(LBS, 127);
-  //walk back for half a foot
-  walk((int)encoder_count/2);
+  //walk back for half a meter
+  int done = 0;
+  while(done < (int)encoder_count/8){
+    //check for a PWM pulse; when on, start timer; when off, return how long the pulse was high; is pulse was on high longer than 10 microsecounds, continue
+    if (pulseIn(RFE, HIGH)>10){
+      done ++;
+    }
+    // check to see if wheel is stuck
+    if ((analogRead(RBC) > 800 ) || (analogRead(LBC) > 800)){
+      break;
+    }
+  }
   //stop wheels
   analogWrite(RFS, 0);
   analogWrite(RBS, 0);
@@ -231,8 +254,18 @@ void checkBack(){
   analogWrite(RBS, 127);
   analogWrite(LFS, 127);
   analogWrite(LBS, 127);
-  //walk back for half a foot
-  delay(500);
+  //walk back for half a meter
+  int done = 0;
+  while(done < (int)encoder_count/8){
+    //check for a PWM pulse; when on, start timer; when off, return how long the pulse was high; is pulse was on high longer than 10 microsecounds, continue
+    if (pulseIn(RFE, HIGH)>10){
+      done ++;
+    }
+    // check to see if wheel is stuck
+    if ((analogRead(RFC) > 800 ) || (analogRead(LFC) > 800)){
+      break;
+    }
+  }
   //stop wheels
   analogWrite(RFS, 0);
   analogWrite(RBS, 0);
